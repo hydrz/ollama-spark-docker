@@ -75,10 +75,5 @@ ENV OLLAMA_MODELS=/root/.ollama/models
 
 EXPOSE 11434
 
-VOLUME ["/root/.ollama"]
-
-HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD curl -f http://localhost:11434/ || exit 1
-
 ENTRYPOINT ["/usr/bin/ollama"]
 CMD ["serve"]

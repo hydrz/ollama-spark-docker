@@ -1,30 +1,53 @@
-# Modelfile for Spark-X2.5 GGUF
-# 将你下载的 Spark-X2.5 GGUF 文件放置在宿主机的 ./models 目录下（例如 spark-x2.5-4b.gguf）
-# 容器内对应的路径为 /models/spark-x2.5-4b.gguf
+# 1. 指定基底文件
+FROM modelscope.cn/XHToken/Spark-X2.5-4B-GGUF:Q4_K_M
 
-FROM /models/spark-x2.5-4b.gguf
+# 2. 对齐官方元数据的系统人设
+SYSTEM """you are a helpful assistant."""
 
-# 默认上下文建议设置为 32K 或 64K（按需平衡速度与容量）
-PARAMETER num_ctx 65536
+# 3. 完整 Chat Template（包含思维链 <think>、工具协议与角色定界符）
+TEMPLATE """{{- if .Messages }}
+{{- if or .System .Tools }}<｜start▁of▁sentence｜><|System|>
+{{- if .Tools }}
+## Tools
+You have access to the following functions:
+<tools>
+{{- range .Tools }}
+{{ .Function }}
+{{- end }}
+</tools>
+{{- end }}
+{{- if .System }}
+{{ .System }}
+{{- else }}
+you are a helpful assistant.
+{{- end }}<｜end▁of▁sentence｜>
+{{- end }}
+{{- range .Messages }}
+{{- if eq .Role "user" }}<｜start▁of▁sentence｜><|User|>{{ .Content }}<｜end▁of▁sentence｜>
+{{- else if eq .Role "assistant" }}<｜start▁of▁sentence｜><|Bot|>
+{{- if .Content }}</think>{{ .Content }}{{- end }}<｜end▁of▁sentence｜>
+{{- else if eq .Role "tool" }}<｜start▁of▁sentence｜><|Tool|><tool_response>{{ .Content }}</tool_response><｜end▁of▁sentence｜>
+{{- end }}
+{{- end }}<｜start▁of▁sentence｜><|Bot|><think>
+{{- else }}
+{{- if .System }}<｜start▁of▁sentence｜><|System|>
+{{ .System }}<｜end▁of▁sentence｜>{{ end }}
+{{- if .Prompt }}<｜start▁of▁sentence｜><|User|>
+{{ .Prompt }}<｜end▁of▁sentence｜>{{ end }}<｜start▁of▁sentence｜><|Bot|><think>
+{{- end }}"""
 
-# 预测长度与采样参数
-PARAMETER num_predict 1024
-PARAMETER temperature 0.3
+# 4. 停止符（严格阻止模型自问自答或跨轮次胡言乱语）
+PARAMETER stop "<｜end▁of▁sentence｜>"
+PARAMETER stop "<｜start▁of▁sentence｜>"
+PARAMETER stop "<|User|>"
+PARAMETER stop "<|Bot|>"
+PARAMETER stop "<|System|>"
+PARAMETER stop "</tool_call>"
+
+# 5. 官方推荐采样参数（来源于元数据 sampling.temp / sampling.top_p）
+PARAMETER temperature 1.0
 PARAMETER top_p 0.95
-PARAMETER top_k 40
+PARAMETER top_k -1
 
-# 停止符设置
-PARAMETER stop "<|end|>"
-PARAMETER stop "<|user|>"
-PARAMETER stop "<|assistant|>"
-
-# 对话模版
-TEMPLATE """{{ if .System }}<|system|>
-{{ .System }}<|end|>
-{{ end }}{{ if .Prompt }}<|user|>
-{{ .Prompt }}<|end|>
-{{ end }}<|assistant|>
-{{ .Response }}<|end|>"""
-
-# 可选系统提示词
-SYSTEM """你是科大讯飞研发的 Spark-X2.5 大语言模型。你会诚实、准确、有条理地回答用户的各类问题。"""
+# 6. 上下文长度（元数据原生标称 1048576）
+PARAMETER num_ctx 1048576

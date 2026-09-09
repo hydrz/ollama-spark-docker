@@ -1,0 +1,11 @@
+# Ollama model persistence & cache
+data/
+.cache/
+
+# Large model weight files
+models/*.gguf
+models/*.bin
+
+# System files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,26 @@
+# Modelfile for Spark-X2.5 GGUF
+# 将你下载的 Spark-X2.5 GGUF 文件放置在宿主机的 ./models 目录下（例如 spark-x2.5-4b.gguf）
+# 容器内对应的路径为 /models/spark-x2.5-4b.gguf
+
+FROM /models/spark-x2.5-4b.gguf
+
+# 对话模板（Chat Template）
+TEMPLATE """{{ if .System }}<|system|>
+{{ .System }}<|end|>
+{{ end }}{{ if .Prompt }}<|user|>
+{{ .Prompt }}<|end|>
+{{ end }}<|assistant|>
+{{ .Response }}<|end|>"""
+
+# 停止标记
+PARAMETER stop "<|end|>"
+PARAMETER stop "<|user|>"
+PARAMETER stop "<|assistant|>"
+
+# 推理参数默认设置
+PARAMETER temperature 0.7
+PARAMETER top_p 0.95
+PARAMETER top_k 40
+
+# 可选系统提示词
+SYSTEM """你是科大讯飞研发的 Spark-X2.5 大语言模型。你会诚实、准确、有条理地回答用户的各类问题。"""

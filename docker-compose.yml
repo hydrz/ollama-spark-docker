@@ -1,0 +1,27 @@
+services:
+  ollama-spark:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        CUDA_ARCHITECTURES: "75;80;86;89"
+        BUILD_JOBS: 8
+    image: ollama-spark:latest
+    container_name: ollama-spark
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+      - OLLAMA_KEEP_ALIVE=24h
+    volumes:
+      - ./data:/root/.ollama
+      - ./models:/models:ro
+      - ./modelfiles:/modelfiles:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

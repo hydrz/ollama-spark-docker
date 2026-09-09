@@ -1,0 +1,9 @@
+.git
+.github
+data
+models/*.gguf
+models/*.bin
+scripts
+*.md
+.DS_Store
+Thumbs.db

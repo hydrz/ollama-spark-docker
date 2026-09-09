@@ -55,6 +55,25 @@ curl http://localhost:11434/api/generate -d '{
 }'
 ```
 
+## 本机实测对比
+
+使用评测脚本 [`scripts/benchmark-models.mjs`](scripts/benchmark-models.mjs) 进行同机对比测试：
+
+| 项目 | Spark-X2.5-4B Q8 | Qwen3.5-9B Q6_K_XL |
+| :--- | :--- | :--- |
+| **模型大小** | 4.4GB | 9.7GB |
+| **稳定输出速度** | 约 83–92 tok/s | 约 58–62 tok/s |
+| **简单数学（关闭思考）** | 算错：6991 | 正确：7011 |
+| **JSON 指令** | 正确 | 正确 |
+| **不可哈希对象去重代码** | 未满足要求 | 正确 |
+| **工具调用** | 成功生成调用 | 本次返回空，疑似模板兼容问题 |
+| **综合特点** | 快、小、工具调用较好 | 推理和代码更可靠 |
+
+### 运行评测脚本
+```bash
+node scripts/benchmark-models.mjs http://localhost:11434 spark-x2.5
+```
+
 ## GitHub Actions 自动构建
 
 流水线配置文件见 `.github/workflows/docker-publish.yml`：
